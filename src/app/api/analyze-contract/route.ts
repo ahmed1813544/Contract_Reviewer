@@ -139,7 +139,15 @@ export async function POST(request: NextRequest) {
             ? error.message
             : "An unexpected error occurred";
 
-        if (
+        console.error("Analysis error:", error);
+
+        if (!process.env.OPENROUTER_API_KEY) {
+          send(controller, {
+            type: "error",
+            message:
+              "Server configuration error: OPENROUTER_API_KEY is not set. Please contact the administrator.",
+          });
+        } else if (
           message.includes("401") ||
           message.includes("unauthorized") ||
           message.includes("unauthorised") ||

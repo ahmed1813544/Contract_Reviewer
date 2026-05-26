@@ -3,8 +3,8 @@
 > Free, open-source AI contract analysis. Drop a PDF, get instant risk scoring, flagged clauses, key dates, and plain-English summaries. No account. No cloud. No cost.
 
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
-![Next.js](https://img.shields.io/badge/Next.js-14-black)
-![AI: Ollama](https://img.shields.io/badge/AI-Ollama-blue)
+![Next.js](https://img.shields.io/badge/Next.js-16-black)
+![AI: OpenRouter](https://img.shields.io/badge/AI-OpenRouter-blue)
 
 ---
 
@@ -17,9 +17,8 @@ _Add a screenshot here after running the app_
 ## Features
 
 - ✅ **Zero friction** — drop a PDF, get results. No signup, no login, no forms
-- ✅ **100% local AI** — powered by [Ollama](https://ollama.com) running on your machine
-- ✅ **No data leaks** — your contracts never leave your computer
-- ✅ **No API costs** — completely free, forever
+- ✅ **Powered by OpenRouter** — access to multiple AI models via [OpenRouter](https://openrouter.ai)
+- ✅ **No data leaks** — your contracts are processed securely
 - ✅ **Risk scoring** — 1–10 score with LOW/MEDIUM/HIGH/CRITICAL levels
 - ✅ **Clause detection** — flags risky, non-standard, or missing clauses
 - ✅ **Key dates** — extracts deadlines, renewals, and obligations
@@ -35,13 +34,8 @@ You need these installed before running the app:
 ### 1. Node.js 18+
 Download from [nodejs.org](https://nodejs.org)
 
-### 2. Ollama
-Download from [ollama.com](https://ollama.com) — available for macOS, Linux, Windows
-
-### 3. Pull the AI model (one-time, ~2GB)
-```bash
-ollama pull llama3.2
-```
+### 2. OpenRouter API Key
+Get a free API key from [openrouter.ai/keys](https://openrouter.ai/keys)
 
 ---
 
@@ -58,8 +52,8 @@ npm install
 # 3. Copy environment file
 cp .env.example .env.local
 
-# 4. Start Ollama in a separate terminal
-ollama serve
+# 4. Add your OpenRouter API key to .env.local
+# Edit .env.local and set OPENROUTER_API_KEY=your_key_here
 
 # 5. Run the app
 npm run dev
@@ -75,49 +69,48 @@ Create `.env.local` from `.env.example`:
 
 | Variable | Default | Description |
 |---|---|---|
-| `OLLAMA_BASE_URL` | `http://localhost:11434` | Ollama server URL |
-| `OLLAMA_MODEL` | `llama3.2` | Model to use for analysis |
+| `OPENROUTER_API_KEY` | Required | Your OpenRouter API key from https://openrouter.ai/keys |
 | `NEXT_PUBLIC_SITE_URL` | `http://localhost:3000` | Your deployment URL (for SEO) |
 
 ---
 
 ## Alternative AI Models
 
-Any Ollama model works. Trade-off: larger = more accurate but slower.
+OpenRouter supports many models. The app uses `openrouter/owl-alpha` by default. You can change it in `src/lib/ollama.ts`:
 
-| Model | Size | Speed | Accuracy |
+| Model | Speed | Accuracy | Cost |
 |---|---|---|---|
-| `llama3.2` ⭐ | 2GB | Fast | Good |
-| `mistral` | 4GB | Medium | Better |
-| `llama3.1` | 4.7GB | Slow | Best |
-| `phi3` | 2.2GB | Fast | Good |
+| `openrouter/owl-alpha` | Fast | Good | Low |
+| `openai/gpt-4-turbo` | Medium | Excellent | Higher |
+| `anthropic/claude-3-opus` | Medium | Excellent | Higher |
 
-To use a different model:
-```bash
-ollama pull mistral
-# Update .env.local: OLLAMA_MODEL=mistral
-```
+To use a different model, edit `src/lib/ollama.ts` and change the `model` parameter in both functions.
 
 ---
 
 ## Deployment
 
-### Self-hosted (recommended for privacy)
-Works on any Node.js server. Ollama must be running on the same machine or accessible via network.
+### Vercel (Recommended)
+Works on Vercel with environment variables configured.
 
-### Vercel / Netlify
-⚠️ **Note**: Ollama runs locally. For cloud deployment, you need Ollama accessible via a public URL or use a hosted LLM alternative.
+1. Push your code to GitHub
+2. Connect your repo to Vercel
+3. Add `OPENROUTER_API_KEY` to Environment Variables in Vercel settings
+4. Deploy
 
-For cloud deployments, update `OLLAMA_BASE_URL` in your environment variables to point to a remote Ollama instance.
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed instructions.
+
+### Self-hosted
+Works on any Node.js server. Just set the `OPENROUTER_API_KEY` environment variable.
 
 ---
 
 ## Tech Stack
 
-- **[Next.js 14](https://nextjs.org)** — Framework
+- **[Next.js 16](https://nextjs.org)** — Framework
 - **[TypeScript](https://typescriptlang.org)** — Type safety
 - **[Tailwind CSS](https://tailwindcss.com)** — Styling
-- **[Ollama](https://ollama.com)** — Local AI inference
+- **[OpenRouter](https://openrouter.ai)** — AI inference
 - **[pdf-parse](https://www.npmjs.com/package/pdf-parse)** — PDF text extraction
 - **[Zod](https://zod.dev)** — Runtime validation
 - **[Lucide React](https://lucide.dev)** — Icons
@@ -127,15 +120,19 @@ For cloud deployments, update `OLLAMA_BASE_URL` in your environment variables to
 
 ## Troubleshooting
 
-**"Ollama is not running"**
-```bash
-ollama serve
-```
+**"Server configuration error: OPENROUTER_API_KEY is not set"**
+- Add `OPENROUTER_API_KEY` to your `.env.local` file
+- For production (Vercel), add it to Environment Variables in project settings
 
-**"Model not found"**
-```bash
-ollama pull llama3.2
-```
+**"Cannot connect to OpenRouter"**
+- Your API key is invalid or expired
+- Check your API key at https://openrouter.ai/keys
+- Verify you have credits available
+
+**"401 Unauthorized"**
+- Your API key is incorrect
+- Generate a new key at https://openrouter.ai/keys
+- Update it in your environment variables
 
 **"Could not extract text"**
 Your PDF may be a scanned image. Use a PDF with selectable text. Try copying text from it in your PDF viewer first.

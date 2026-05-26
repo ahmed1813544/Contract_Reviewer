@@ -194,10 +194,10 @@ async function runAnalysis(
 // ─── Context-aware error help ──────────────────────────────────────────────
 
 const getErrorHelp = (errMsg: string) => {
-  if (errMsg.toLowerCase().includes("ollama") || errMsg.includes("11434") || errMsg.includes("ECONNREFUSED"))
-    return { help: "Open a terminal and run: ollama serve", code: "ollama serve" };
-  if (errMsg.includes("model"))
-    return { help: "The AI model isn't installed. Run:", code: "ollama pull llama3.2" };
+  if (errMsg.toLowerCase().includes("openrouter") || errMsg.includes("401") || errMsg.includes("unauthorized"))
+    return { help: "Your OpenRouter API key is invalid or expired. Get a new one at:", code: "https://openrouter.ai/keys" };
+  if (errMsg.includes("configuration error"))
+    return { help: "The server is not configured with an API key. Contact the administrator." };
   if (errMsg.includes("timeout") || errMsg.includes("timed out"))
     return { help: "Try a shorter contract, or wait and try again." };
   if (errMsg.includes("JSON"))
@@ -495,7 +495,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t border-zinc-800 py-4">
         <p className="text-center text-xs text-zinc-600">
-          Contract.Review — All processing is done locally via Ollama. No data leaves your machine.
+          Contract.Review — Powered by OpenRouter AI. Your contracts are processed securely.
         </p>
       </footer>
     </div>
