@@ -10,11 +10,13 @@ function getOpenAIClient() {
     );
   }
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+
   return new OpenAI({
     baseURL: "https://openrouter.ai/api/v1",
     apiKey,
     defaultHeaders: {
-      "HTTP-Referer": "https://contractreviewer.local",
+      "HTTP-Referer": siteUrl,
       "X-OpenRouter-Title": "ContractReviewer",
     },
   });
