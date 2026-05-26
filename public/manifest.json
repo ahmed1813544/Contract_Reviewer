@@ -1,0 +1,14 @@
+{
+  "name": "Contract.Review",
+  "short_name": "Contract.Review",
+  "description": "Free AI contract analysis. Local, private, no account needed.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#f59e0b",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ],
+  "categories": ["productivity", "utilities"],
+  "screenshots": []
+}

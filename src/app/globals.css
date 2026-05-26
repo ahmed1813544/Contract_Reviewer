@@ -1,26 +1,94 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+:root {
+  --background: #0a0a0a;
+  --foreground: #e8e6e1;
+  --amber: #f59e0b;
+  --amber-light: rgba(245, 158, 11, 0.1);
+  --amber-border: rgba(245, 158, 11, 0.3);
+  --muted: rgba(232, 230, 225, 0.5);
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.mono {
+  font-family: var(--font-mono), monospace;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #3f3f46;
+  border-radius: 3px;
+}
+
+/* Selection styling */
+::selection {
+  background-color: var(--amber);
+  color: #000;
+}
+
+/* Focus visible styles */
+*:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+button:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 4px;
+}
+
+/* Noise texture overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAMAAAAp4XiDAAAAUVBMVEWFhYWDg4N3d3dtbW17e3t1dXWBgYGHh4t5eXlzc3OLi4ubm5uVlZWPj4+NjY19fX2JiYl/f39ra2uRkZGZmZlpaWmXl5dvb29hYWFfX19jY2M8TV1mAAAAG3RSTlNAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEAvEOwtAAAFVklEQVR4XpWWB67c2BUFb3g557T/hRo9/WUMZHlgr4Bg8Z4qQgQJlHI4A8SzFVrapvmTF9O7dmYRFZ60YiBhJRCgh1FYhiLAmdvX0CzTOpNE77ME0Zty/nWWzchDtiqrmQDeuv3powQ5ta2eN0FY0InkqDD73lT9c9lEzwUNqgFHs9VQce3TVClFCQrSTfOiYkVJQBmpbq2L6iZavPnAPcoU0dSw0SUTqz/GtrGuXfbyyBniKykOWQWGqwwMA7QiYAxi+IlPdqo+hYHnUt5ZPfnsHJyNiDtnpJyayNBkF6cWoYGAMY92ZTFRjqfQR6/LXE555Fr2IlnEEiuuBDJzgH5GGDKIQIKK8dVBqNHEBvGYTiXb0VYdNRcVmOl3tAlbESlGFf9yASdRLLJETHfCLqj/HV8JIqlhxkpfRLQkqGYCyajf3ByifqRkBYHKLQj6MIZkLZR3LJRkVKKIKwlMSNMCKLAlEoQbpNKMKVoCOKtUUdA7XC8K0GAFhEwMAxDFkSGEEMrZ7DEYK/ZhqL0GYuA6R5V6geMEGVnJxuKBDXnqI9XRvIKMNijxEfRCpwHvKDwOPKmHV10AYLgKRkDoRFX+kQhh4GIkA6mPXIJsLVm/dNKfVTh3VaQolnM/L9bMN5y2PPJQO6W+k+dF9y2lOAKQ5KWRQYGSv1g0aA1h+V28FUwQoJwt4L1KhWfXHbqhqWRlhEqBFe6LqD7jDvIz7Lx/NlrJlq+p4mGFJQj3c78TyeWUKjU3Mq1s+G41sIeJQqVkXwHxf7TpA9TXSLXjrKXCqnVLlFakJTFVnVq1GbW2qPAiP2wOALEfH6ZrJ2Fjbr0o=");
+  opacity: 0.04;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Screen reader only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
