@@ -21,7 +21,7 @@ export default function Header() {
         </div>
         <div className="flex items-center gap-4">
           <span className="hidden text-xs text-zinc-400 dark:text-zinc-500 sm:block">
-            Powered by AI
+            Powered by Nexivtech
           </span>
         </div>
       </div>
