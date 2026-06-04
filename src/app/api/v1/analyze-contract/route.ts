@@ -195,7 +195,7 @@ export async function POST(request: NextRequest) {
 
   const response = new Response(stream, {
     headers: {
-      "Content-Type": "application/x-ndjson",
+      "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache",
       Connection: "keep-alive",
     },
