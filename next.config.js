@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  serverExternalPackages: ["pdf-parse"],
+  serverExternalPackages: ["pdfjs-dist"],
   poweredByHeader: false,
   compress: true,
   async headers() {
