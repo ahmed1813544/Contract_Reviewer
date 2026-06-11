@@ -101,7 +101,7 @@ export default function RootLayout({
       lang="en"
       className={`${ibmPlexMono.variable} ${ibmPlexSans.variable} h-full antialiased`}
     >
-      <body className="min-h-full bg-[#0a0a0a] font-sans text-[#e8e6e1]">
+      <body suppressHydrationWarning className="min-h-full bg-[#0a0a0a] font-sans text-[#e8e6e1]">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

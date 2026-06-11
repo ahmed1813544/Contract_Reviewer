@@ -9,7 +9,7 @@
  * incomplete pair and return whatever we've accumulated so far.
  */
 
-import type { ContractAnalysis, ClauseAnalysis, RiskLevel } from "@/types";
+import type { ContractAnalysis, ClauseAnalysis, RiskLevel, MissingClause, NegotiationTip } from "@/types";
 
 // ─── Public API ────────────────────────────────────────────────────────────
 
@@ -149,8 +149,6 @@ function readArray(text: string, pos: number): ReadResult {
     pos = elem.nextPos;
     pos = skipSpace(text, pos);
     if (pos >= text.length || text[pos] === "]") {
-      // Array might be closing or continue
-      // Try to continue reading more elements if there's a comma
       continue;
     }
   }
@@ -222,7 +220,7 @@ function sanitizePartial(
   raw: Record<string, unknown>,
   previous: ContractAnalysis | null
 ): ContractAnalysis {
-  const fallback = previous || {} as ContractAnalysis;
+  const fallback = previous || ({} as ContractAnalysis);
 
   const overallRiskScore =
     typeof raw.overallRiskScore === "number"
@@ -252,6 +250,47 @@ function sanitizePartial(
       ? raw.effectiveDate
       : fallback.effectiveDate || "";
 
+  // Feature 4: Jurisdiction
+  const jurisdiction =
+    typeof raw.jurisdiction === "string" && raw.jurisdiction.length > 0
+      ? raw.jurisdiction
+      : fallback.jurisdiction || undefined;
+
+  const jurisdictionNotes =
+    typeof raw.jurisdictionNotes === "string"
+      ? raw.jurisdictionNotes
+      : fallback.jurisdictionNotes || undefined;
+
+  // Feature 7: Missing clauses
+  const missingClauses = Array.isArray(raw.missingClauses)
+    ? (raw.missingClauses as Record<string, unknown>[]).map((mc) => ({
+        clauseType: String(mc.clauseType || "Unknown"),
+        description: String(mc.description || ""),
+        template: mc.template ? String(mc.template) : undefined,
+        importance: (["high", "medium", "low"].includes(String(mc.importance))
+          ? mc.importance
+          : "medium") as "high" | "medium" | "low",
+      }))
+    : fallback.missingClauses || undefined;
+
+  // Feature 3: Negotiation tips
+  const negotiationTips = Array.isArray(raw.negotiationTips)
+    ? (raw.negotiationTips as Record<string, unknown>[]).map((nt) => ({
+        clauseTitle: String(nt.clauseTitle || "Unknown"),
+        riskLevel: (["low", "medium", "high", "critical"].includes(String(nt.riskLevel))
+          ? nt.riskLevel
+          : "medium") as RiskLevel,
+        tip: String(nt.tip || ""),
+        priority: typeof nt.priority === "number" ? nt.priority : 5,
+      }))
+    : fallback.negotiationTips || undefined;
+
+  // Feature 8: Plain English summary
+  const plainEnglishSummary =
+    typeof raw.plainEnglishSummary === "string"
+      ? raw.plainEnglishSummary
+      : fallback.plainEnglishSummary || undefined;
+
   // Merge clauses: new ones override old ones (by index), new ones beyond
   // the old length are appended.
   const newClauses = (Array.isArray(raw.clauses) ? raw.clauses : []) as Record<string, unknown>[];
@@ -263,6 +302,8 @@ function sanitizePartial(
     riskLevel: (c.riskLevel as RiskLevel) || oldClauses[i]?.riskLevel || "medium",
     explanation: (c.explanation as string) || oldClauses[i]?.explanation || "",
     recommendation: (c.recommendation as string) || oldClauses[i]?.recommendation || "",
+    clauseScore: typeof c.clauseScore === "number" ? c.clauseScore : oldClauses[i]?.clauseScore,
+    plainEnglishExplanation: (c.plainEnglishExplanation as string) || oldClauses[i]?.plainEnglishExplanation,
   }));
 
   // If new clauses are fewer than old (e.g. because the array is still filling),
@@ -279,6 +320,11 @@ function sanitizePartial(
     contractType,
     effectiveDate,
     clauses: mergedClauses,
+    jurisdiction,
+    jurisdictionNotes,
+    missingClauses,
+    negotiationTips,
+    plainEnglishSummary,
   };
 }
 
@@ -301,7 +347,32 @@ export function sanitizeAnalysis(raw: Record<string, unknown>): ContractAnalysis
       riskLevel: (c.riskLevel as RiskLevel) || "medium",
       explanation: (c.explanation as string) || "No explanation provided.",
       recommendation: (c.recommendation as string) || "No recommendation provided.",
+      clauseScore: typeof c.clauseScore === "number" ? c.clauseScore : undefined,
+      plainEnglishExplanation: (c.plainEnglishExplanation as string) || undefined,
     })),
+    jurisdiction: (raw.jurisdiction as string) || undefined,
+    jurisdictionNotes: (raw.jurisdictionNotes as string) || undefined,
+    missingClauses: Array.isArray(raw.missingClauses)
+      ? (raw.missingClauses as Record<string, unknown>[]).map((mc) => ({
+          clauseType: String(mc.clauseType || "Unknown"),
+          description: String(mc.description || ""),
+          template: mc.template ? String(mc.template) : undefined,
+          importance: (["high", "medium", "low"].includes(String(mc.importance))
+            ? mc.importance
+            : "medium") as "high" | "medium" | "low",
+        }))
+      : undefined,
+    negotiationTips: Array.isArray(raw.negotiationTips)
+      ? (raw.negotiationTips as Record<string, unknown>[]).map((nt) => ({
+          clauseTitle: String(nt.clauseTitle || "Unknown"),
+          riskLevel: (["low", "medium", "high", "critical"].includes(String(nt.riskLevel))
+            ? nt.riskLevel
+            : "medium") as RiskLevel,
+          tip: String(nt.tip || ""),
+          priority: typeof nt.priority === "number" ? nt.priority : 5,
+        }))
+      : undefined,
+    plainEnglishSummary: (raw.plainEnglishSummary as string) || undefined,
   };
 }
 

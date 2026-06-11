@@ -7,9 +7,14 @@ import LoadingState from "@/components/LoadingState";
 import EmptyState from "@/components/EmptyState";
 import AnalysisDashboard from "@/components/AnalysisDashboard";
 import CompareView from "@/components/CompareView";
+import HistorySidebar from "@/components/HistorySidebar";
+import DisclaimerModal from "@/components/DisclaimerModal";
+import DisclaimerBanner from "@/components/DisclaimerBanner";
 import { streamParse, sanitizeAnalysis, extractJsonFromText } from "@/lib/stream-json";
-import type { AnalysisState, AnalysisSlot } from "@/types";
+import { saveToHistory } from "@/components/HistorySidebar";
+import type { AnalysisState, AnalysisSlot, HistoryEntry } from "@/types";
 import type { ContractAnalysis } from "@/types";
+import { History } from "lucide-react";
 
 // ─── Helpers to run one analysis flow ──────────────────────────────────────
 
@@ -211,14 +216,14 @@ type SlotSetter = (
   updater: (prev: AnalysisSlot) => AnalysisSlot,
 ) => void;
 
-// ─── Section component (memoized) ─────────────────────────────────────────
-
 // ─── Page Component ────────────────────────────────────────────────────────
 
 export default function Home() {
   const [state, setState] = useState<AnalysisState>({
     status: "idle",
-  });  const [showSlowWarning, setShowSlowWarning] = useState(false);
+  });
+  const [showSlowWarning, setShowSlowWarning] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const mountedRef = useRef(true);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -288,6 +293,23 @@ export default function Home() {
     setState((prev) => ({ ...prev, secondSlot: undefined }));
   }, []);
 
+  // Feature 6: Save to history when analysis completes
+  useEffect(() => {
+    if (state.status === "complete" && state.result && state.fileName) {
+      saveToHistory(state.fileName, state.result);
+    }
+  }, [state.status, state.result, state.fileName]);
+
+  // Feature 6: Load from history
+  const handleLoadFromHistory = useCallback((entry: HistoryEntry) => {
+    setState({
+      status: "complete",
+      fileName: entry.fileName,
+      result: entry.result,
+      clauseCount: entry.result.clauses.length,
+    });
+  }, []);
+
   // ── Derived states ────────────────────────────────────────────────────
 
   const isInComparisonMode =
@@ -313,6 +335,9 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen flex-col" id="main-content">
+      {/* Feature 10: Disclaimer Modal */}
+      <DisclaimerModal />
+
       {/* Skip to content link */}
       <a
         href="#main-content"
@@ -350,6 +375,24 @@ export default function Home() {
       </div>
 
       <Header />
+
+      {/* History button in header area */}
+      <div className="absolute top-4 right-4 sm:right-6 z-10">
+        <button
+          onClick={() => setHistoryOpen(true)}
+          className="flex items-center gap-1.5 rounded-lg border border-zinc-700 px-3 py-1.5 text-xs font-medium text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-200"
+        >
+          <History className="h-3.5 w-3.5" />
+          History
+        </button>
+      </div>
+
+      {/* Feature 6: History Sidebar */}
+      <HistorySidebar
+        isOpen={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        onLoad={handleLoadFromHistory}
+      />
 
       <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-4 py-8 sm:px-6">
         {/* ── COMPARISON MODE: Show both dashboards side by side ── */}
@@ -430,7 +473,6 @@ export default function Home() {
                     {state.error}
                   </p>
 
-                  {/* Context-aware error help */}
                   {errorHelp && (
                     <div className="mb-4 text-left">
                       <p className="text-xs text-red-500 dark:text-red-400 mb-2">
@@ -465,6 +507,7 @@ export default function Home() {
                   onReset={handleReset}
                   isStreaming={state.status === "streaming"}
                   clauseCount={state.clauseCount}
+                  fileName={state.fileName}
                 />
 
                 {/* Add comparison CTA */}
@@ -491,6 +534,9 @@ export default function Home() {
           </>
         )}
       </main>
+
+      {/* Feature 10: Disclaimer Banner */}
+      <DisclaimerBanner />
 
       {/* Footer */}
       <footer className="border-t border-zinc-800 py-4">

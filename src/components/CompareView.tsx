@@ -4,6 +4,7 @@ import { RefreshCw, Plus } from "lucide-react";
 import type { AnalysisSlot } from "@/types";
 import AnalysisDashboard from "./AnalysisDashboard";
 import CompareHeader from "./CompareHeader";
+import DiffView from "./DiffView";
 
 interface CompareViewProps {
   firstSlot: AnalysisSlot;
@@ -54,11 +55,20 @@ export default function CompareView({
         />
       )}
 
+      {/* Feature 5: Side-by-side Diff View */}
+      {showComparison && firstSlot.result && secondSlot.result && (
+        <DiffView
+          analysisA={firstSlot.result}
+          analysisB={secondSlot.result}
+          labelA={firstSlot.fileName || "Contract A"}
+          labelB={secondSlot.fileName || "Contract B"}
+        />
+      )}
+
       {/* Side-by-side dashboards */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Column A */}
         <div>
-          {/* Slot label */}
           <div className="mb-3 flex items-center gap-2">
             <div className="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-100 text-[10px] font-bold text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-400">
               A
@@ -74,6 +84,7 @@ export default function CompareView({
             clauseCount={firstSlot.clauseCount}
             compact={true}
             slotLabel="A"
+            fileName={firstSlot.fileName}
           />
         </div>
 
@@ -89,7 +100,6 @@ export default function CompareView({
               </span>
             </div>
 
-            {/* Show "remove" button if second analysis exists */}
             {secondExists && !showComparison && (
               <button
                 onClick={onResetSecond}
@@ -98,85 +108,83 @@ export default function CompareView({
                 Remove
               </button>
             )}
-          </div>            {secondSlot.status === "idle" ? (
-              /* Upload prompt */
+          </div>
+          {secondSlot.status === "idle" ? (
+            <button
+              onClick={onAddSecond}
+              className="flex w-full flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-zinc-300 px-6 py-12 text-center transition-all hover:border-indigo-400 hover:bg-indigo-50 dark:border-zinc-700 dark:hover:border-indigo-500 dark:hover:bg-indigo-950/20"
+            >
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/40">
+                <Plus className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                  Add Contract for Comparison
+                </p>
+                <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                  Upload another PDF to compare side by side
+                </p>
+              </div>
+            </button>
+          ) : secondSlot.status === "uploading" || secondSlot.status === "parsing" ? (
+            <div className="flex flex-col items-center justify-center rounded-xl border border-zinc-200 bg-white px-6 py-12 dark:border-zinc-700 dark:bg-zinc-900">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-100 dark:bg-indigo-900/40">
+                <svg
+                  className="h-6 w-6 animate-spin text-indigo-600 dark:text-indigo-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                  />
+                </svg>
+              </div>
+              <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
+                {secondSlot.status === "uploading"
+                  ? "Uploading contract..."
+                  : "Parsing contract..."}
+              </p>
+              {secondSlot.fileName && (
+                <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">
+                  {secondSlot.fileName}
+                </p>
+              )}
+            </div>
+          ) : secondSlot.status === "error" ? (
+            <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center dark:border-red-900 dark:bg-red-950/20">
+              <p className="mb-3 text-sm text-red-600 dark:text-red-400">
+                {secondSlot.error || "Failed to analyze this contract."}
+              </p>
               <button
                 onClick={onAddSecond}
-                className="flex w-full flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-zinc-300 px-6 py-12 text-center transition-all hover:border-indigo-400 hover:bg-indigo-50 dark:border-zinc-700 dark:hover:border-indigo-500 dark:hover:bg-indigo-950/20"
+                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700"
               >
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/40">
-                  <Plus className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                    Add Contract for Comparison
-                  </p>
-                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                    Upload another PDF to compare side by side
-                  </p>
-                </div>
+                Retry
               </button>
-            ) : secondSlot.status === "uploading" || secondSlot.status === "parsing" ? (
-              /* Loading state for second slot */
-              <div className="flex flex-col items-center justify-center rounded-xl border border-zinc-200 bg-white px-6 py-12 dark:border-zinc-700 dark:bg-zinc-900">
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-100 dark:bg-indigo-900/40">
-                  <svg
-                    className="h-6 w-6 animate-spin text-indigo-600 dark:text-indigo-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                    />
-                  </svg>
-                </div>
-                <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
-                  {secondSlot.status === "uploading"
-                    ? "Uploading contract..."
-                    : "Parsing contract..."}
-                </p>
-                {secondSlot.fileName && (
-                  <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">
-                    {secondSlot.fileName}
-                  </p>
-                )}
-              </div>
-            ) : secondSlot.status === "error" ? (
-              /* Error state */
-              <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center dark:border-red-900 dark:bg-red-950/20">
-                <p className="mb-3 text-sm text-red-600 dark:text-red-400">
-                  {secondSlot.error || "Failed to analyze this contract."}
-                </p>
-                <button
-                  onClick={onAddSecond}
-                  className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700"
-                >
-                  Retry
-                </button>
-              </div>
-            ) : (
-              /* Second slot analysis dashboard (streaming or complete) */
-              secondSlot.result && (
-                <AnalysisDashboard
-                  analysis={secondSlot.result}
-                  onReset={onResetSecond}
-                  isStreaming={secondSlot.status === "streaming"}
-                  clauseCount={secondSlot.clauseCount}
-                  compact={true}
-                  slotLabel="B"
-                />
-              )
-            )}
+            </div>
+          ) : (
+            secondSlot.result && (
+              <AnalysisDashboard
+                analysis={secondSlot.result}
+                onReset={onResetSecond}
+                isStreaming={secondSlot.status === "streaming"}
+                clauseCount={secondSlot.clauseCount}
+                compact={true}
+                slotLabel="B"
+                fileName={secondSlot.fileName}
+              />
+            )
+          )}
         </div>
       </div>
     </div>

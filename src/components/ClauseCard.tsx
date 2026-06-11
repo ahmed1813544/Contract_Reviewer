@@ -1,18 +1,27 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, ChevronUp, AlertTriangle, Lightbulb } from "lucide-react";
+import { ChevronDown, ChevronUp, AlertTriangle, Lightbulb, BookOpen } from "lucide-react";
 import clsx from "clsx";
 import RiskBadge from "./RiskBadge";
+import ClauseSuggestionView from "./ClauseSuggestionView";
 import type { ClauseAnalysis } from "@/types";
 
 interface ClauseCardProps {
   clause: ClauseAnalysis;
   index: number;
   compact?: boolean;
+  showPlainEnglish?: boolean;
 }
 
-export default function ClauseCard({ clause, index, compact = false }: ClauseCardProps) {
+function getScoreColor(score: number): string {
+  if (score >= 8) return "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400";
+  if (score >= 6) return "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400";
+  if (score >= 4) return "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400";
+  return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400";
+}
+
+export default function ClauseCard({ clause, index, compact = false, showPlainEnglish = false }: ClauseCardProps) {
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -38,7 +47,16 @@ export default function ClauseCard({ clause, index, compact = false }: ClauseCar
             </h3>
           </div>
         </div>
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
+          {/* Clause Score Badge (Feature 9) */}
+          {typeof clause.clauseScore === "number" && (
+            <span className={clsx(
+              "flex h-6 min-w-[2rem] items-center justify-center rounded-full px-1.5 text-[10px] font-bold",
+              getScoreColor(clause.clauseScore)
+            )}>
+              {clause.clauseScore}/10
+            </span>
+          )}
           <RiskBadge level={clause.riskLevel} size="sm" />
           {expanded ? (
             <ChevronUp className="h-4 w-4 text-zinc-400" />
@@ -65,11 +83,13 @@ export default function ClauseCard({ clause, index, compact = false }: ClauseCar
                 <div className="mb-1.5 flex items-center gap-1.5">
                   <AlertTriangle className="h-3.5 w-3.5 text-zinc-500" />
                   <h4 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                    Analysis
+                    {showPlainEnglish && clause.plainEnglishExplanation ? "Plain English" : "Analysis"}
                   </h4>
                 </div>
                 <p className={`leading-relaxed text-zinc-600 dark:text-zinc-400 ${compact ? "text-xs" : "text-sm"}`}>
-                  {clause.explanation}
+                  {showPlainEnglish && clause.plainEnglishExplanation
+                    ? clause.plainEnglishExplanation
+                    : clause.explanation}
                 </p>
               </div>
 
@@ -85,6 +105,11 @@ export default function ClauseCard({ clause, index, compact = false }: ClauseCar
                 </p>
               </div>
             </div>
+
+            {/* Feature 2: Clause Suggestion button (for high/critical clauses) */}
+            {(clause.riskLevel === "high" || clause.riskLevel === "critical") && !compact && (
+              <ClauseSuggestionView clause={clause} />
+            )}
           </div>
         </div>
       )}
